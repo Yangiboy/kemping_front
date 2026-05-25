@@ -35,12 +35,7 @@ export const guestAPI = {
   update: (id, data) => apiCall(`/guests/${id}`, 'PUT', data),
   delete: (id) => apiCall(`/guests/${id}`, 'DELETE'),
   search: (q) => apiCall(`/guests/search?q=${q}`),
-  getDashboardStats: () => apiCall('/guests/stats/dashboard'),
-  getPersonByPassport: (seria, number, dateOfBirth) => apiCall('/guests/info/passport', 'POST', {
-    seria,
-    number,
-    dateOfBirth
-  })
+  getDashboardStats: () => apiCall('/guests/stats/dashboard')
 }
 
 // Room API Functions

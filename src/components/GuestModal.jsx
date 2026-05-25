@@ -220,91 +220,16 @@ const countries = [
 ].sort()
 
 import { useState, useRef, useEffect } from 'react'
-import { guestAPI } from '../api'
 
 function GuestModal({ isOpen, onClose, formData, onInputChange, onSubmit, title, rooms = [] }) {
   const [countrySearch, setCountrySearch] = useState('')
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const dropdownRef = useRef(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const previousPassportDateRef = useRef(null)
 
   // Initialize country search with the selected country value
   useEffect(() => {
     setCountrySearch(formData.country || '')
   }, [formData.country])
-
-  // Fetch full name from API based on passport and date of birth
-  useEffect(() => {
-    const fetchFullName = async () => {
-      // Faqat O'zbekiston fukarolari uchun
-      if (formData.country !== "O'zbekiston") {
-        setError(null)
-        setLoading(false)
-        return
-      }
-
-      if (!formData.passport || !formData.dateOfBirth) {
-        return
-      }
-
-      // Agar fullName allaqachon to'liq bo'lsa, sorov yubormaslik
-      if (formData.fullName && formData.fullName.trim() !== '') {
-        return
-      }
-
-      // Parse passport: extract series and number
-      // Format: "AC1533649" -> seria: "AC", number: "1533649"
-      const passportMatch = formData.passport.match(/^([A-Z]{2})(\d+)$/i)
-      if (!passportMatch) {
-        setError('Passport formati noto\'g\'ri (Masalan: AC1533649)')
-        return
-      }
-
-      const seria = passportMatch[1].toUpperCase()
-      const number = passportMatch[2]
-      
-      // Convert date format from YYYY-MM-DD to DD.MM.YYYY
-      const [year, month, day] = formData.dateOfBirth.split('-')
-      const birthDate = `${day}.${month}.${year}`
-
-      // Agar bu kombinatsiya oldindan soralgan bo'lsa, qaytah sorov yubormaslik
-      const currentKey = `${seria}${number}${birthDate}`
-      if (previousPassportDateRef.current === currentKey) {
-        return
-      }
-
-      setLoading(true)
-      setError(null)
-
-      try {
-        const data = await guestAPI.getPersonByPassport(seria, number, birthDate)
-        if (data.fullName) {
-          // Auto-fill the fullName field
-          onInputChange({
-            target: {
-              name: 'fullName',
-              value: data.fullName
-            }
-          })
-          previousPassportDateRef.current = currentKey
-          setError(null)
-        }
-      } catch (err) {
-        setError(err.message)
-        console.error('Full name fetch error:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    // Only fetch if both fields are complete
-    if (formData.passport && formData.dateOfBirth && formData.country === "O'zbekiston") {
-      const timeoutId = setTimeout(fetchFullName, 1000) // Wait 1 second after user stops typing
-      return () => clearTimeout(timeoutId)
-    }
-  }, [formData.passport, formData.dateOfBirth, formData.country, formData.fullName, onInputChange])
 
   const filteredCountries = countries.filter(country =>
     country.toLowerCase().includes(countrySearch.toLowerCase())
@@ -399,10 +324,7 @@ function GuestModal({ isOpen, onClose, formData, onInputChange, onSubmit, title,
               value={formData.fullName}
               onChange={onInputChange}
               placeholder="Masalan: Alijon Aliyev"
-              disabled={loading}
             />
-            {loading && <small style={{ color: '#666' }}>Ma'lumot yuklanyapti...</small>}
-            {error && <small style={{ color: '#dc3545' }}>{error}</small>}
           </div>
           <div className="form-group">
             <label>Kelish Kuni *</label>
